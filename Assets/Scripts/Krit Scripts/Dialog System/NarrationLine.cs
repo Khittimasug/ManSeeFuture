@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 [CreateAssetMenu(menuName = "Scriptable Objects/Narration/Line")]
 public class NarrationLine : ScriptableObject
@@ -7,6 +8,8 @@ public class NarrationLine : ScriptableObject
     private NarrationCharacter m_Speaker;
     [SerializeField]
     private string m_Text;
+    [SerializeField]
+    private UnityEvent m_EventTrigger;
 
     public NarrationCharacter Speaker => m_Speaker;
     public string Text => m_Text;
