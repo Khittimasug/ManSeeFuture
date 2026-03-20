@@ -5,22 +5,22 @@ using UnityEngine.UI;
 public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
 {
     [SerializeField]
-    private TextMeshProUGUI m_SpeakerText;
+    protected TextMeshProUGUI m_SpeakerText;
     [SerializeField]
-    private TextMeshProUGUI m_DialogueText;
+    protected TextMeshProUGUI m_DialogueText;
 
     [SerializeField]
-    private RectTransform m_ChoicesBoxTransform;
+    protected RectTransform m_ChoicesBoxTransform;
     [SerializeField]
-    private UIDialogueChoiceController m_ChoiceControllerPrefab;
+    protected UIDialogueChoiceController m_ChoiceControllerPrefab;
 
     [SerializeField]
-    private DialogueChannel m_DialogueChannel;
+    protected DialogueChannel m_DialogueChannel;
 
-    private bool m_ListenToInput = false;
-    private DialogueNode m_NextNode = null;
+    protected bool m_ListenToInput = false;
+    protected DialogueNode m_NextNode = null;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         m_DialogueChannel.OnDialogueNodeStart += OnDialogueNodeStart;
         m_DialogueChannel.OnDialogueNodeEnd += OnDialogueNodeEnd;
@@ -29,13 +29,13 @@ public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
         m_ChoicesBoxTransform.gameObject.SetActive(false);
     }
 
-    private void OnDestroy()
+    protected virtual void OnDestroy()
     {
         m_DialogueChannel.OnDialogueNodeEnd -= OnDialogueNodeEnd;
         m_DialogueChannel.OnDialogueNodeStart -= OnDialogueNodeStart;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (m_ListenToInput && Input.GetButtonDown("Submit"))
         {
@@ -43,7 +43,7 @@ public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
         }
     }
 
-    private void OnDialogueNodeStart(DialogueNode node)
+    protected virtual void OnDialogueNodeStart(DialogueNode node)
     {
         gameObject.SetActive(true);
 
@@ -53,7 +53,7 @@ public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
         node.Accept(this);
     }
 
-    private void OnDialogueNodeEnd(DialogueNode node)
+    protected virtual void OnDialogueNodeEnd(DialogueNode node)
     {
         m_NextNode = null;
         m_ListenToInput = false;
@@ -69,13 +69,13 @@ public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
         m_ChoicesBoxTransform.gameObject.SetActive(false);
     }
 
-    public void Visit(BasicDialogueNode node)
+    public virtual void Visit(BasicDialogueNode node)
     {
         m_ListenToInput = true;
         m_NextNode = node.NextNode;
     }
 
-    public void Visit(ChoiceDialogueNode node)
+    public virtual void Visit(ChoiceDialogueNode node)
     {
         m_ChoicesBoxTransform.gameObject.SetActive(true);
 
@@ -86,20 +86,18 @@ public class UIDialogueTextBoxController : MonoBehaviour, DialogueNodeVisitor
         }
     }
 
-    //private void OnEnable()
-    //{
-    //    m_DialogueChannel.OnDialogueNodeStart += OnDialogueNodeStart;
-    //    m_DialogueChannel.OnDialogueNodeEnd += OnDialogueNodeEnd;
-    //}
+//private void OnEnable()
+//{
+//    m_DialogueChannel.OnDialogueNodeStart += OnDialogueNodeStart;
+//    m_DialogueChannel.OnDialogueNodeEnd += OnDialogueNodeEnd;
+//}
 
-    //private void OnDisable()
-    //{
-    //    if (m_DialogueChannel != null)
-    //    {
-    //        m_DialogueChannel.OnDialogueNodeStart -= OnDialogueNodeStart;
-    //        m_DialogueChannel.OnDialogueNodeEnd -= OnDialogueNodeEnd;
-    //    }
-    //}
-
-
+//private void OnDisable()
+//{
+//    if (m_DialogueChannel != null)
+//    {
+//        m_DialogueChannel.OnDialogueNodeStart -= OnDialogueNodeStart;
+//        m_DialogueChannel.OnDialogueNodeEnd -= OnDialogueNodeEnd;
+//    }
+//}
 }
