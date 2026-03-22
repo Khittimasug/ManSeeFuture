@@ -1003,6 +1003,7 @@ GameObject:
   m_Component:
   - component: {fileID: 755624323}
   - component: {fileID: 755624322}
+  - component: {fileID: 755624324}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -1039,6 +1040,45 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &755624324
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 755624321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa051f3def7f88c46aad874a811cb880, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VideoSequenceManager
+  videoPlayer: {fileID: 153619631}
+  choicePanel: {fileID: 1092397844}
+  playlist:
+  - segmentName: 1
+    clip: {fileID: 32900000, guid: 36a07c34a552ba6438e0fa0903aedd04, type: 3}
+    hasChoice: 0
+    onSegmentEnd:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 11400000, guid: 94813681dcb114640adbff54d6175cfe, type: 2}
+          m_TargetAssemblyTypeName: DialogueChannel, Assembly-CSharp
+          m_MethodName: RaiseRequestDialogue
+          m_Mode: 2
+          m_Arguments:
+            m_ObjectArgument: {fileID: 11400000, guid: e58d910d98f09b64abe5160664bd4e8c, type: 2}
+            m_ObjectArgumentAssemblyTypeName: Dialogue, Assembly-CSharp
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+  - segmentName: 2
+    clip: {fileID: 32900000, guid: a7d9edaba04cade44a1cad6769ff4731, type: 3}
+    hasChoice: 1
+    onSegmentEnd:
+      m_PersistentCalls:
+        m_Calls: []
 --- !u!1 &795032011
 GameObject:
   m_ObjectHideFlags: 0
