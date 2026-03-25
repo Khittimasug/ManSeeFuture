@@ -1,4 +1,4 @@
-
+﻿
 public class DialogueException : System.Exception
 {
     public DialogueException(string message)
@@ -48,9 +48,13 @@ public class DialogueSequencer
         }
     }
 
+    //private bool CanStartNode(DialogueNode node)
+    //{
+    //    return (m_CurrentNode == null || node == null || m_CurrentNode.CanBeFollowedByNode(node));
+    //}
     private bool CanStartNode(DialogueNode node)
     {
-        return (m_CurrentNode == null || node == null || m_CurrentNode.CanBeFollowedByNode(node));
+        return true;
     }
 
     public void StartDialogueNode(DialogueNode node)

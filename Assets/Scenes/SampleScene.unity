@@ -1074,6 +1074,12 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
   - segmentName: 2
+    clip: {fileID: 32900000, guid: f1460bc8fd044544e83b40e3d31d4b79, type: 3}
+    hasChoice: 1
+    onSegmentEnd:
+      m_PersistentCalls:
+        m_Calls: []
+  - segmentName: 2
     clip: {fileID: 32900000, guid: a7d9edaba04cade44a1cad6769ff4731, type: 3}
     hasChoice: 1
     onSegmentEnd:

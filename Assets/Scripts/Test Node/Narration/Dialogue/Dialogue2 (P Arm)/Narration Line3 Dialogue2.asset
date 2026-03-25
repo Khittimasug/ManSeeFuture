@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: Narration Line3 Dialogue2
   m_EditorClassIdentifier: Assembly-CSharp::NarrationLine
   m_Speaker: {fileID: 11400000, guid: 4327d1164393a7049a6f7417a32379dd, type: 2}
-  m_Text: I don't know too....
+  m_Text: 555
+  m_EventTrigger:
+    m_PersistentCalls:
+      m_Calls: []

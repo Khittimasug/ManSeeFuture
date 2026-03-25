@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using UnityEngine;
 
@@ -10,8 +10,13 @@ public class DialogueChoice
     [SerializeField]
     private DialogueNode m_ChoiceNode;
 
+    // ส่วนนี้: เพื่อระบุว่าคลิก Choice นี้แล้วให้ไปเล่นวิดีโอตัวไหนใน VideoSequenceManager
+    [SerializeField]
+    private int m_VideoIndex;
+
     public string ChoicePreview => m_ChoicePreview;
     public DialogueNode ChoiceNode => m_ChoiceNode;
+    public int VideoIndex => m_VideoIndex; // Getter สำหรับดึงค่าไปใช้
 }
 
 

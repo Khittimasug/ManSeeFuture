@@ -96,4 +96,14 @@ public class VideoSequenceManager : MonoBehaviour
         // ตัวอย่าง: ถ้ากดปุ่ม A แล้วอยากให้ข้ามไปเล่นวิดีโอตัวที่ 5 ก็ส่งเลข 5 มา
         PlaySegment(nextVideoIndex);
     }
+
+    public void OnChoiceSelected(DialogueChoice choice)
+    {
+        // 1. เล่นวิดีโอตาม Index ที่ระบุไว้ใน Choice
+        PlaySegment(choice.VideoIndex);
+
+        // 2. ปิด Panel ทางเลือกทันที
+        choicePanel.SetActive(false);
+
+    }
 }

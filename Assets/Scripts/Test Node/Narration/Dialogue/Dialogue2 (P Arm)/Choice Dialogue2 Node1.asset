@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChoiceDialogueNode
   m_DialogueLine: {fileID: 11400000, guid: cb8917cbe29b4bf4e987b8932853c46f, type: 2}
   m_Choices:
-  - m_ChoicePreview: Who are you?
+  - m_ChoicePreview: Return to the first clip.
     m_ChoiceNode: {fileID: 11400000, guid: c184c45ddbc361d47b34ba6c4fa6b438, type: 2}
-  - m_ChoicePreview: Where im I?
+    m_VideoIndex: 0
+  - m_ChoicePreview: Go to a new clip.
     m_ChoiceNode: {fileID: 11400000, guid: 7827de71dff41544a99ca835225f3f5b, type: 2}
+    m_VideoIndex: 2
