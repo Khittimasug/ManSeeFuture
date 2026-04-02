@@ -1055,9 +1055,15 @@ MonoBehaviour:
   videoPlayer: {fileID: 153619631}
   choicePanel: {fileID: 1092397844}
   playlist:
-  - segmentName: 1
+  - segmentName: 0
     clip: {fileID: 32900000, guid: 36a07c34a552ba6438e0fa0903aedd04, type: 3}
     hasChoice: 0
+    onSegmentEnd:
+      m_PersistentCalls:
+        m_Calls: []
+  - segmentName: 1
+    clip: {fileID: 32900000, guid: 36a07c34a552ba6438e0fa0903aedd04, type: 3}
+    hasChoice: 1
     onSegmentEnd:
       m_PersistentCalls:
         m_Calls:
@@ -1074,14 +1080,14 @@ MonoBehaviour:
             m_BoolArgument: 0
           m_CallState: 2
   - segmentName: 2
-    clip: {fileID: 32900000, guid: f1460bc8fd044544e83b40e3d31d4b79, type: 3}
-    hasChoice: 1
+    clip: {fileID: 32900000, guid: a7d9edaba04cade44a1cad6769ff4731, type: 3}
+    hasChoice: 0
     onSegmentEnd:
       m_PersistentCalls:
         m_Calls: []
-  - segmentName: 2
-    clip: {fileID: 32900000, guid: a7d9edaba04cade44a1cad6769ff4731, type: 3}
-    hasChoice: 1
+  - segmentName: 3
+    clip: {fileID: 32900000, guid: 4234fbb5d726cc141af270c7202a7beb, type: 3}
+    hasChoice: 0
     onSegmentEnd:
       m_PersistentCalls:
         m_Calls: []
