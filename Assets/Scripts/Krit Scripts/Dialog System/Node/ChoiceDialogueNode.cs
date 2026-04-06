@@ -3,25 +3,43 @@ using System.Linq;
 using UnityEngine;
 
 /// <summary>
+/// รูปแบบเงื่อนไขสำหรับการปลดล็อกตัวเลือก (Lock/Unlock)
+/// </summary>
+public enum PointCondition
+{
+    None,                   // ไม่มีเงื่อนไข (เลือกได้เสมอ)
+    RequireMoreThanOrEqual, // ต้องมีแต้ม "มากกว่าหรือเท่ากับ" ที่กำหนด
+    RequireLessThanOrEqual  // ต้องมีแต้ม "น้อยกว่าหรือเท่ากับ" ที่กำหนด
+}
+
+/// <summary>
 /// [Data Structure] คลาสสำหรับเก็บข้อมูลของ "หนึ่งตัวเลือก" 
 /// ที่จะปรากฏบนปุ่มทางเลือกในเกม
 /// </summary>
 [Serializable]
 public class DialogueChoice
 {
+    [Header("Point Settings (When Clicked)")]
+    public CharacterTarget PointTarget; // เลือกตัวละครที่จะได้รับแต้ม (None, Biw, Josephine)
+    public int PointAmount;             // แต้มที่จะเพิ่มหรือลดเมื่อกดเลือก
+
+    // --- ส่วนที่เพิ่มเข้ามาใหม่: ระบบ Requirement (เงื่อนไขการปลดล็อก) ---
+    [Header("Requirement Settings (Lock/Unlock)")]
+    public CharacterTarget RequiredTarget;  // ตัวละครที่ต้องการเช็คแต้ม
+    public PointCondition Condition;        // รูปแบบเงื่อนไข
+    public int RequiredAmount;              // จำนวนแต้มที่ต้องการเช็ค
+
+    [Header("Choice Display & Flow")]
     [SerializeField]
-    private string m_ChoicePreview; // ข้อความสั้นๆ ที่จะแสดงบนปุ่ม (เช่น "ไปทางซ้าย" หรือ "สู้ต่อ")
+    private string m_ChoicePreview; // ข้อความสั้นๆ ที่จะแสดงบนปุ่ม
 
     [SerializeField]
-    private DialogueNode m_ChoiceNode; // Node ถัดไปที่จะเล่น (ถ้ามี) หลังจากเลือกข้อนี้
+    private DialogueNode m_ChoiceNode; // Node ถัดไปที่จะเล่น
 
-    /* * ส่วนสำคัญ: ใช้ระบุว่าเมื่อคลิก Choice นี้แล้ว 
-     * จะให้ VideoSequenceManager เปลี่ยนไปเล่นวิดีโอตัวที่เท่าไหร่ใน Playlist
-     */
     [SerializeField]
-    private int m_VideoIndex;
+    private int m_VideoIndex; // วิดีโอตัวที่จะเล่นเมื่อเลือกข้อนี้
 
-    // Getter (Public Properties): อนุญาตให้สคริปต์อื่น (เช่น Manager หรือ UI) เข้ามาอ่านค่าได้เท่านั้น
+    // Getter
     public string ChoicePreview => m_ChoicePreview;
     public DialogueNode ChoiceNode => m_ChoiceNode;
     public int VideoIndex => m_VideoIndex;
@@ -35,24 +53,15 @@ public class DialogueChoice
 public class ChoiceDialogueNode : DialogueNode
 {
     [SerializeField]
-    private DialogueChoice[] m_Choices; // รายการทางเลือกทั้งหมดที่มีใน Node นี้ (แสดงผลเป็น List ใน Inspector)
+    private DialogueChoice[] m_Choices;
 
     public DialogueChoice[] Choices => m_Choices;
 
-    /// <summary>
-    /// ฟังก์ชันตรวจสอบความถูกต้องของลำดับ (Sequence Validation)
-    /// ใช้เช็คว่า Node ที่ระบบพยายามจะรันต่อ เป็นหนึ่งในลูกที่ถูกต้องของ Node นี้หรือไม่
-    /// </summary>
     public override bool CanBeFollowedByNode(DialogueNode node)
     {
-        // ใช้ LINQ เพื่อค้นหาว่ามีทางเลือกใดในลิสต์ที่มี ChoiceNode ตรงกับที่ส่งมาหรือไม่
         return m_Choices.Any(x => x.ChoiceNode == node);
     }
 
-    /// <summary>
-    /// ส่วนหนึ่งของ Visitor Pattern
-    /// ส่งตัวเองไปให้ Visitor (เช่น UI Controller) จัดการแสดงผลตามประเภทของ Choice Node
-    /// </summary>
     public override void Accept(DialogueNodeVisitor visitor)
     {
         visitor.Visit(this);

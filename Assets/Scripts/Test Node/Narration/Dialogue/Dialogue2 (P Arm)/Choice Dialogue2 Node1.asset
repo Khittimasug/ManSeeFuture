@@ -14,9 +14,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChoiceDialogueNode
   m_DialogueLine: {fileID: 11400000, guid: cb8917cbe29b4bf4e987b8932853c46f, type: 2}
   m_Choices:
-  - m_ChoicePreview: To clip 3.
+  - PointTarget: 1
+    PointAmount: 1
+    RequiredTarget: 0
+    Condition: 0
+    RequiredAmount: 0
+    m_ChoicePreview: To clip 3.(Biw)
     m_ChoiceNode: {fileID: 11400000, guid: c184c45ddbc361d47b34ba6c4fa6b438, type: 2}
     m_VideoIndex: 2
-  - m_ChoicePreview: To clip 4.
+  - PointTarget: 2
+    PointAmount: 5
+    RequiredTarget: 0
+    Condition: 0
+    RequiredAmount: 0
+    m_ChoicePreview: To clip 4.(Josephine)
     m_ChoiceNode: {fileID: 11400000, guid: 7827de71dff41544a99ca835225f3f5b, type: 2}
+    m_VideoIndex: 3
+  - PointTarget: 2
+    PointAmount: -10
+    RequiredTarget: 1
+    Condition: 1
+    RequiredAmount: 10
+    m_ChoicePreview: Biw Decision
+    m_ChoiceNode: {fileID: 11400000, guid: df7a4d6cf77be4744bf81001656122dd, type: 2}
     m_VideoIndex: 3
