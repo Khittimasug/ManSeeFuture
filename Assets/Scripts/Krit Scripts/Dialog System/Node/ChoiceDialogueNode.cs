@@ -20,10 +20,9 @@ public enum PointCondition
 public class DialogueChoice
 {
     [Header("Point Settings (When Clicked)")]
-    public CharacterTarget PointTarget; // เลือกตัวละครที่จะได้รับแต้ม (None, Biw, Josephine)
+    public CharacterTarget PointTarget; // เลือกตัวละครที่จะได้รับแต้ม (อ้างอิงจาก CharacterPointManager)
     public int PointAmount;             // แต้มที่จะเพิ่มหรือลดเมื่อกดเลือก
 
-    // --- ส่วนที่เพิ่มเข้ามาใหม่: ระบบ Requirement (เงื่อนไขการปลดล็อก) ---
     [Header("Requirement Settings (Lock/Unlock)")]
     public CharacterTarget RequiredTarget;  // ตัวละครที่ต้องการเช็คแต้ม
     public PointCondition Condition;        // รูปแบบเงื่อนไข
@@ -43,11 +42,44 @@ public class DialogueChoice
     public string ChoicePreview => m_ChoicePreview;
     public DialogueNode ChoiceNode => m_ChoiceNode;
     public int VideoIndex => m_VideoIndex;
+
+    /// <summary>
+    /// ฟังก์ชันเช็คว่าตัวเลือกนี้ถูกปลดล็อกหรือไม่ 
+    /// โดยดึงค่าแต้มปัจจุบันจาก CharacterPointManager มาคำนวณโดยตรง
+    /// </summary>
+    public bool IsUnlocked()
+    {
+        // 1. ถ้าไม่มีเงื่อนไข ให้ผ่านเสมอ
+        if (Condition == PointCondition.None) return true;
+
+        // 2. ดึงแต้มปัจจุบันของตัวละครที่ต้องการเช็ค
+        int currentPoints = 0;
+        if (RequiredTarget == CharacterTarget.Biw)
+        {
+            currentPoints = CharacterPointManager.Instance.biwPoints;
+        }
+        else if (RequiredTarget == CharacterTarget.Josephine)
+        {
+            currentPoints = CharacterPointManager.Instance.josephinePoints;
+        }
+
+        // 3. ตรวจสอบเงื่อนไข
+        switch (Condition)
+        {
+            case PointCondition.RequireMoreThanOrEqual:
+                return currentPoints >= RequiredAmount;
+
+            case PointCondition.RequireLessThanOrEqual:
+                return currentPoints <= RequiredAmount;
+
+            default:
+                return true;
+        }
+    }
 }
 
 /// <summary>
 /// [Scriptable Object] ไฟล์ Asset ที่ใช้สร้าง Node ทางเลือกใน Project Window
-/// ทำหน้าที่เป็น "จุดแยก" ของเนื้อเรื่อง (Branching Point)
 /// </summary>
 [CreateAssetMenu(menuName = "Scriptable Objects/Narration/Dialogue/Node/Choice")]
 public class ChoiceDialogueNode : DialogueNode

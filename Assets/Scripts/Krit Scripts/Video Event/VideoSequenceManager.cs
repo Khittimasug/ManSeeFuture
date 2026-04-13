@@ -2,87 +2,195 @@
 using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.Events;
+using UnityEngine.UI; // [เพิ่ม] เรียกใช้งาน UI ทั่วไป (เช่น Image)
+using TMPro;
+
+/// <summary>
+/// โครงสร้างสำหรับเก็บข้อมูลตัวเลือก QTE แต่ละปุ่ม
+/// </summary>
+[System.Serializable]
+public class QTEAction
+{
+    public string actionName;
+    public KeyCode requiredKey;
+    public int successVideoIndex;
+
+    [Header("UI Settings")]
+    public TextMeshProUGUI actionTextUI;
+}
 
 /// <summary>
 /// [Data Structure] สำหรับเก็บข้อมูลวิดีโอแต่ละช่วง
-/// ใช้กำหนดพฤติกรรมว่าวิดีโอจบแล้วจะให้ทำอะไรต่อ
 /// </summary>
 [System.Serializable]
 public class VideoSegment
 {
-    public string segmentName;      // ชื่อเรียกใน Inspector (ช่วยให้จัดลำดับง่าย)
-    public VideoClip clip;          // ไฟล์ไฟล์วิดีโอ
-    public bool hasChoice;          // ตัวกำหนด: True = หยุดรอเลือกทางเลือก / False = เล่นตัวถัดไปทันที
+    public string segmentName;
+    public VideoClip clip;
 
-    [Tooltip("เหตุการณ์ที่จะเกิดขึ้นเมื่อจบวิดีโอ (เช่น เปลี่ยนเพลง, ปลดล็อค Achievement)")]
+    [Header("Normal Choice Settings")]
+    public bool hasChoice;
+
+    [Header("QTE Settings")]
+    public bool hasQTE;
+    public float qteStartTime;
+    public float qteDuration;
+    public List<QTEAction> qteActions;
+    public int qteFailVideoIndex;
+
+    [Tooltip("เหตุการณ์ที่จะเกิดขึ้นเมื่อจบวิดีโอ")]
     public UnityEvent onSegmentEnd;
 }
 
 public class VideoSequenceManager : MonoBehaviour
 {
     [Header("Components Settings")]
-    public VideoPlayer videoPlayer; // ตัวควบคุมการเล่นไฟล์วิดีโอ
-    public GameObject choicePanel;  // UI หน้าจอทางเลือก (Canvas/Panel)
+    public VideoPlayer videoPlayer;
+    public GameObject choicePanel;
+
+    [Header("QTE UI Settings")]
+    public GameObject qtePanel;
+    public Image qteTimerImage;     // [เพิ่ม] ตัวแปรอ้างอิงถึง UI Image ที่เป็นหลอดเวลา
 
     [Header("Video Playlist")]
-    public List<VideoSegment> playlist; // รายการเนื้อเรื่องวิดีโอทั้งหมด
+    public List<VideoSegment> playlist;
 
-    private int currentIndex = 0;   // ตัวชี้ตำแหน่งวิดีโอปัจจุบันใน List
+    private int currentIndex = 0;
+    private bool isQTEActive = false;
+
+    [SerializeField] private float qteTimer = 0f;
 
     void Start()
     {
-        // ลงทะเบียน Event: เมื่อไฟล์วิดีโอเล่นจนถึงจุดจบ (Loop Point) 
-        // ให้ไปเรียกฟังก์ชัน OnVideoFinished เพื่อตัดสินใจว่าจะทำอะไรต่อ
         videoPlayer.loopPointReached += OnVideoFinished;
 
-        choicePanel.SetActive(false); // เริ่มเกมให้ซ่อนหน้าต่างทางเลือกไว้ก่อน
-        PlaySegment(0);               // เริ่มเล่นวิดีโอแรกสุด
+        if (choicePanel != null) choicePanel.SetActive(false);
+        if (qtePanel != null) qtePanel.SetActive(false);
+
+        PlaySegment(0);
     }
 
     void Update()
     {
-        /* * [LOGIC: การตรวจหาทางเลือกล่วงหน้า]
-         * เนื่องจาก LoopPointReached บางครั้งทำงานช้า หรือทำให้ภาพกระพริบก่อนหยุด
-         * เราจึงใช้ Update ช่วยเช็คว่า "ถ้าใกล้จะจบแล้ว (เหลือ 0.1 วินาที) และมีทางเลือกให้เลือก" 
-         * ให้ชิงสั่ง Pause วิดีโอไว้ที่เฟรมสุดท้ายทันที
-         */
-        if (videoPlayer.isPlaying && playlist[currentIndex].hasChoice && videoPlayer.time > 0.5f)
+        if (!videoPlayer.isPlaying && !isQTEActive) return;
+
+        VideoSegment currentSegment = playlist[currentIndex];
+
+        // ----------------------------------------------------
+        // [LOGIC 1: ระบบจัดการ QTE]
+        // ----------------------------------------------------
+        if (currentSegment.hasQTE)
+        {
+            if (!isQTEActive && videoPlayer.time >= currentSegment.qteStartTime)
+            {
+                StartQTE();
+                videoPlayer.Pause();
+            }
+
+            if (isQTEActive)
+            {
+                qteTimer -= Time.deltaTime;
+
+                // --- [เพิ่ม] อัปเดตหลอดเวลา (Fill Amount) ---
+                if (qteTimerImage != null)
+                {
+                    // เอาเวลาที่เหลือ หารด้วย เวลาทั้งหมด จะได้สัดส่วนเป็น 0.0 - 1.0 พอดี
+                    qteTimerImage.fillAmount = qteTimer / currentSegment.qteDuration;
+                }
+
+                foreach (var action in currentSegment.qteActions)
+                {
+                    if (Input.GetKeyDown(action.requiredKey))
+                    {
+                        Debug.Log($"[QTE] Player pressed {action.requiredKey}! Executing: {action.actionName}");
+                        EndQTE(action.successVideoIndex);
+                        return;
+                    }
+                }
+
+                if (qteTimer <= 0f)
+                {
+                    Debug.Log("[QTE] Time out! Player failed the QTE.");
+                    EndQTE(currentSegment.qteFailVideoIndex);
+                    return;
+                }
+            }
+        }
+
+        // ----------------------------------------------------
+        // [LOGIC 2: การตรวจหาทางเลือกล่วงหน้าตอนจบ]
+        // ----------------------------------------------------
+        if (currentSegment.hasChoice && videoPlayer.time > 0.5f && !isQTEActive)
         {
             double timeBeforeEnd = videoPlayer.length - videoPlayer.time;
 
-            if (timeBeforeEnd <= 0.1f) // ระยะประชิดก่อนจบวิดีโอ
+            if (timeBeforeEnd <= 0.1f)
             {
-                videoPlayer.Pause(); // หยุดวิดีโอค้างไว้ (ให้ผู้เล่นเห็นภาพสุดท้าย)
+                videoPlayer.Pause();
 
                 if (!choicePanel.activeSelf)
                 {
-                    // หมายเหตุ: choicePanel จะถูกเปิดผ่าน Dialogue System 
-                    // หรือจะเปิดตรงนี้ก็ได้หากไม่ได้ใช้ระบบ Dialogue แยก
-                    playlist[currentIndex].onSegmentEnd?.Invoke(); // รันคำสั่งพิเศษที่ตั้งไว้ใน Inspector
+                    currentSegment.onSegmentEnd?.Invoke();
                 }
             }
         }
     }
 
-    /// <summary>
-    /// ฟังก์ชันหัวใจหลัก: ใช้เปลี่ยนวิดีโอที่จะเล่น
-    /// มีการจัดการเรื่องการรีเซ็ตค่า Time และเตรียมความพร้อมไฟล์ (Prepare)
-    /// </summary>
+    // ฟังก์ชันเริ่ม QTE
+    private void StartQTE()
+    {
+        isQTEActive = true;
+        qteTimer = playlist[currentIndex].qteDuration;
+
+        // --- [เพิ่ม] รีเซ็ตหลอดเวลาให้เต็ม 100% (1.0) ตอนเริ่ม QTE ---
+        if (qteTimerImage != null)
+        {
+            qteTimerImage.fillAmount = 1f;
+        }
+
+        foreach (var action in playlist[currentIndex].qteActions)
+        {
+            if (action.actionTextUI != null)
+            {
+                action.actionTextUI.text = $"{action.actionName}";
+                action.actionTextUI.gameObject.SetActive(true);
+            }
+        }
+
+        if (qtePanel != null) qtePanel.SetActive(true);
+        Debug.Log("[QTE] Started! Waiting for player input...");
+    }
+
+    // ฟังก์ชันจบ QTE และเปลี่ยนวิดีโอ
+    private void EndQTE(int targetVideoIndex)
+    {
+        isQTEActive = false;
+
+        foreach (var action in playlist[currentIndex].qteActions)
+        {
+            if (action.actionTextUI != null)
+            {
+                action.actionTextUI.gameObject.SetActive(false);
+            }
+        }
+
+        if (qtePanel != null) qtePanel.SetActive(false);
+
+        PlaySegment(targetVideoIndex);
+    }
+
     public void PlaySegment(int index)
     {
         if (index >= 0 && index < playlist.Count)
         {
             currentIndex = index;
 
-            choicePanel.SetActive(false); // ปิดหน้าต่างทางเลือกทันทีที่เริ่มคลิปใหม่
+            if (choicePanel != null) choicePanel.SetActive(false);
+            if (qtePanel != null) qtePanel.SetActive(false);
+            isQTEActive = false;
 
-            videoPlayer.Stop(); // ต้องสั่ง Stop เพื่อรีเซ็ตค่า Time/Buffer เดิมให้เกลี้ยง
+            videoPlayer.Stop();
             videoPlayer.clip = playlist[index].clip;
-
-            /*
-             * [.Prepare()] ช่วยลดอาการกระตุกและป้องกันปัญหา Video หยุดตั้งแต่เริ่ม
-             * เป็นการบอกให้ Engine โหลดข้อมูล Length และ Metadata ของคลิปใหม่ให้พร้อมก่อนกด Play
-             */
             videoPlayer.Prepare();
             videoPlayer.Play();
 
@@ -90,41 +198,29 @@ public class VideoSequenceManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[VideoManager] Index out of range: ไม่พบวิดีโอลำดับนี้ใน Playlist");
+            Debug.LogWarning("[VideoManager] Index out of range");
         }
     }
 
-    /// <summary>
-    /// ทำหน้าที่ตัดสินใจหลังจากวิดีโอ "จบสนิท" (สำหรับวิดีโอที่ไม่มีทางเลือก)
-    /// </summary>
     void OnVideoFinished(VideoPlayer vp)
     {
         VideoSegment currentSegment = playlist[currentIndex];
 
-        // ถ้าไม่มีทางเลือก (hasChoice = false) ให้ไหลไปเล่นวิดีโอถัดไปใน List ทันที
-        if (!currentSegment.hasChoice)
+        if (!currentSegment.hasChoice && !isQTEActive)
         {
             currentSegment.onSegmentEnd?.Invoke();
             PlayNext();
         }
     }
 
-    /// <summary>
-    /// สั่งเล่นวิดีโอตัวถัดไปตามลำดับใน Playlist
-    /// </summary>
     public void PlayNext()
     {
         PlaySegment(currentIndex + 1);
     }
 
-    /// <summary>
-    /// ฟังก์ชันรับคำสั่งจากการคลิกปุ่ม Choice บน UI
-    /// </summary>
-    /// <param name="choice">ข้อมูล Choice ที่เก็บ Index ของวิดีโอปลายทางไว้</param>
     public void OnChoiceSelected(DialogueChoice choice)
     {
-        // ดึงค่า VideoIndex จากปุ่มที่กด แล้วส่งไปให้ PlaySegment ทำงาน
         PlaySegment(choice.VideoIndex);
-        choicePanel.SetActive(false);
+        if (choicePanel != null) choicePanel.SetActive(false);
     }
 }
